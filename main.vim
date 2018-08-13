@@ -16,7 +16,7 @@ if !exists('g:vipy_position')
 endif
 
 if !exists('g:vipy_height')
-  let g:vipy_height=20
+  let g:vipy_height=10
 endif
 
 function! VipySyntax()
@@ -41,13 +41,11 @@ from queue import Empty
 class Vipy(object):
   def __init__(self):
     self.debugging = False
-    self.in_debugger = False
     self.monitor_subchannel = True   # update vipy 'shell' on every send?
     self.run_flags= "-i"       # flags to for IPython's run magic when using <F5>
     self.current_line = ''
 
 debugging = False
-in_debugger = False
 monitor_subchannel = True   # update vipy 'shell' on every send?
 run_flags= "-i"       # flags to for IPython's run magic when using <F5>
 current_line = ''
@@ -120,7 +118,7 @@ def vipy_startup():
     echo('Vipy has already been started!  Press SHIFT-F12 to close the current seeion.')
 
 def vipy_shutdown():
-  global km, in_debugger, vib, vihb
+  global km, vib, vihb
   
   status = 'idle'
   if km != None:
@@ -176,45 +174,18 @@ def setup_vib():
   vim.command("syn match Normal /^>>>/")
 
   # mappings to control sending stuff from vipy
-  vim.command('inoremap <expr> <buffer> <silent> <s-cr> pumvisible() ? "\<ESC>:py3 print_completions()\<CR>" : "\<ESC>:py3 shift_enter_at_prompt()\<CR>"')
   vim.command('nnoremap <buffer> <silent> <cr> <ESC>:py3 enter_at_prompt()<CR>')
   vim.command('inoremap <buffer> <silent> <cr> <ESC>:py3 enter_at_prompt()<CR>')
 
-  # setup history mappings etc.
-  enter_normal(first=True)
-
-  # add and auto command, so that the cursor always moves to the end
+  # add an auto command, so that the cursor always moves to the end
   # upon entereing the vipy buffer
   vim.command("au WinEnter <buffer> :python3 insert_at_new()")
-  # not working; the idea was to make
-  # vim.command("au InsertEnter <buffer> :py3 if above_prompt(): vim.command('normal G$')")
+
   vim.command("setlocal statusline=\ VIPY:\ %-{g:ipy_status}")
   
   # handle syntax coloring a little better
   vim.command('call VipySyntax()') # avoid problems with \v being escaped in the regexps
 
-def enter_normal(first=False):
-  global vib_map, in_debugger
-  in_debugger = False
-  vib_map = "on"
-  in_debugger = False
-  # mappings to control history
-  vim.command("inoremap <buffer> <silent> <up> <ESC>:py3 prompt_history('up')<CR>")
-  vim.command("inoremap <buffer> <silent> <down> <ESC>:py3 prompt_history('down')<CR>")
-
-  # make some normal vim commands convenient when in the vib
-  vim.command("nnoremap <buffer> <silent> dd cc>>> ")
-  vim.command("noremap <buffer> <silent> <home> 0llll")
-  vim.command("inoremap <buffer> <silent> <home> <ESC>0llla")
-  vim.command("noremap <buffer> <silent> 0 0llll")
-  vim.command("noremap <buffer> <silent> <c-l> zt")
-  vim.command("noremap <buffer> <silent> I 0llla")
-
-def enter_debug():
-  """ Remove all the convenience mappings. """
-  global vib_map, in_debugger
-  vib_map = "off"
-  in_debugger = True
 
 def if_vipy_started(func):
   def wrapper(*args, **kwargs):
@@ -225,22 +196,7 @@ def if_vipy_started(func):
   return wrapper
       
 
-
 ## COMMAND LINE 
-numspace = re.compile(r'^[>.]{3}(\s*)')
-def shift_enter_at_prompt():
-  if at_end_of_prompt():
-    match = numspace.match(vib[-1])
-    if match:
-      space_on_lastline = match.group(1)
-    else:
-      space_on_lastline = ''
-    vib.append('...' + space_on_lastline)
-    vim.command('normal G')
-    vim.command('startinsert!')
-  else:
-    vim.command('call feedkeys("\<CR>", "n")')
-
 def enter_at_prompt():
   """ Remove prompts and whitespace before sending to ipython. """
   stop_str = r'>>>'
@@ -260,7 +216,6 @@ def enter_at_prompt():
   if len(cmds) == 0:
     return
   cmds.reverse()
-
 
   cmds = '\n'.join(cmds)
   if cmds == 'cls' or cmds == 'clear':
@@ -288,9 +243,6 @@ def format_for_prompt(cmds, firstline='>>> ', limit=False):
   # format and input text
   max_lines = 10
   lines_to_show_when_over = 4
-  if debugging:
-    vib.append('this is what is being formated for the prompt:')
-    vib.append(cmds)
   if not cmds == '':
     formatted = re.sub(r'\n',r'\n... ',cmds).splitlines()
     lines = len(formatted)
@@ -309,10 +261,7 @@ def send(cmds, *args, **kargs):
   Format the input, then print the statements to the vipy buffer.
   """
   formatted = None
-  if status == 'input requested':
-    echo('Can not send further commands until you respond to the input request.')
-    return 
-  elif status == 'busy':
+  if status == 'busy':
     echo('Can not send commands while the python kernel is busy.')
     return
   if not in_vipy():
@@ -363,29 +312,9 @@ def update_subchannel_msgs(debug=False):
       vim.command('let g:ipy_status="' + status + '"')
     elif msg_type == 'stream':
       s = strip_color_escapes(m['content']['text'])
-    elif msg_type == 'pyout':
-      s = m['content']['data']['text/plain']
-    elif msg_type == 'pyin':
-      # don't want to print the input twice
-      continue
-    # TODO: add better error formatting
-    elif msg_type == 'pyerr':
+    elif msg_type == 'error':
       c = m['content']
       s = "\n".join(map(strip_color_escapes, c['traceback']))
-    elif msg_type == 'object_info_reply':
-      c = m['content']
-      if not c['found']:
-        s = c['name'] + " not found!"
-      else:
-      # TODO: finish implementing this
-        s = c['docstring']
-    elif msg_type == 'input_request':
-      s = m['content']['prompt']
-      status = 'input requested'
-      vim.command('let g:ipy_status="' + status + '"')
-      length_of_last_input_request = len(m['content']['prompt'])
-      gotoend = True
-
     elif msg_type == 'crash':
       s = "The IPython Kernel Crashed!"
       s += "\nUnfortuneatly this means that all variables in the interactive namespace were lost."
@@ -414,12 +343,6 @@ def update_subchannel_msgs(debug=False):
     if gotoend:
       goto_vib()
 
-    # turn off some mappings when input is requested (e.g. the history search)
-    if status == "input requested" and vib_map == "on":
-      enter_debug()
-    if vib_map == "off" and status != "input requested":
-      enter_normal()
-
   else:
     if newprompt:
       new_prompt(goto=False)
@@ -434,18 +357,6 @@ def update_subchannel_msgs(debug=False):
   return len(msgs)
 
       
-def get_child_msg(msg_id):
-  while True:
-    # get_msg will raise with Empty exception if no messages arrive in 5 second
-    m= client.shell_channel.get_msg(timeout=5)
-    if m['parent_header']['msg_id'] == msg_id:
-      break
-    else:
-      #got a message, but not the one we were looking for
-      if debugging:
-        echo('skipping a message on shell_channel','WarningMsg')
-  return m
-
 def with_subchannel(f, *args, **kwargs):
   "conditionally monitor subchannel"
   def f_with_update(*args, **kwargs):
@@ -469,9 +380,7 @@ def run_this_file():
 @if_vipy_started
 @with_subchannel
 def run_this_line():
-  # don't send blank lines
-  if vim.current.line != '':
-    msg_id = send(vim.current.line.strip())
+  msg_id = send(vim.current.line.strip())
 
 ws = re.compile(r'\s*')
 @if_vipy_started

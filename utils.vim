@@ -96,13 +96,6 @@ def toggle_vib():
     else:
         goto_vib()
 
-def at_end_of_prompt():
-    """ Is the cursor at the end of a prompt line? """
-    row, col = vim.current.window.cursor
-    lineend = len(vim.current.line) - 1
-    bufend = len(vim.current.buffer)
-    return numspace.match(vim.current.line) and row == bufend and col == lineend
-
 def above_prompt():
     """ See if the cursor is above the last >>> prompt. """
     row, col = vim.current.window.cursor
@@ -139,7 +132,7 @@ def insert_at_new():
     if in_vipy():
         # insert at end of last line
         vim.command('normal G')
-        vim.command('startinsert!') 
+        #vim.command('startinsert!') 
 
 def get_vim_ipython_buffer():
     """ Return the vipy buffer. """
@@ -170,5 +163,17 @@ def echo(arg,style="Question"):
 strip = re.compile('\x1B\[([0-9]{1,2}(;[0-9]{1,2})?)?[m|K]')
 def strip_color_escapes(s):
     return strip.sub('',s)
+
+def get_child_msg(msg_id):
+  while True:
+    # get_msg will raise with Empty exception if no messages arrive in 5 second
+    m= client.shell_channel.get_msg(timeout=5)
+    if m['parent_header']['msg_id'] == msg_id:
+      break
+    else:
+      #got a message, but not the one we were looking for
+      if debugging:
+        echo('skipping a message on shell_channel','WarningMsg')
+  return m
 
 EOF
