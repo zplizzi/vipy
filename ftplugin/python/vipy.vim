@@ -1,23 +1,23 @@
 " PYTHON FILE MAPPINGS
-nnoremap <silent> <buffer> <leader>5 :wa<CR>:py run_this_file()<CR><ESC>l
-vnoremap <silent> <buffer> <leader>5 y:py run_these_lines()<CR><ESC>
+nnoremap <silent> <buffer> <leader>5 :wa<CR>:py3 run_this_file()<CR><ESC>l
+vnoremap <silent> <buffer> <leader>5 y:py3 run_these_lines()<CR><ESC>
 " TODO: make K print currentword? in the buffer
-" noremap  <silent> K :py get_doc_buffer()<CR>
-nnoremap <silent> <buffer> <F9> :py run_this_line()<CR><ESC>j
-noremap  <silent> <buffer> <F12> :py toggle_vib()<CR>
-inoremap <silent> <buffer> <F12> <ESC>:py toggle_vib()<CR>
-nnoremap <silent> <buffer> <F10> :py db_step()<CR>
-nnoremap <silent> <buffer> <F11> :py db_stepinto()<CR>
-nnoremap <silent> <buffer> <C-F11> :py db_stepout()<CR>
-nnoremap <silent> <buffer> <leader>% :py db_quit()<CR>
+" noremap  <silent> K :py3 get_doc_buffer()<CR>
+nnoremap <silent> <buffer> <F9> :py3 run_this_line()<CR><ESC>j
+noremap  <silent> <buffer> <F12> :py3 toggle_vib()<CR>
+inoremap <silent> <buffer> <F12> <ESC>:py3 toggle_vib()<CR>
+nnoremap <silent> <buffer> <F10> :py3 db_step()<CR>
+nnoremap <silent> <buffer> <F11> :py3 db_stepinto()<CR>
+nnoremap <silent> <buffer> <C-F11> :py3 db_stepout()<CR>
+nnoremap <silent> <buffer> <leader>% :py3 db_quit()<CR>
 
 " CELL MODE MAPPINGS
-nnoremap <expr> <buffer> <silent> <S-CR> pumvisible() ? "\<ESC>:py print_completions(invipy=False)\<CR>i" : "\<ESC>:py run_cell()\<CR>\<ESC>i"
-nnoremap <silent> <buffer> <C-CR> :py run_cell(progress=True)<CR><ESC>
-inoremap <expr> <silent> <buffer> <S-CR> pumvisible() ? "\<ESC>:py print_completions(invipy=False)\<CR>i" : "\<ESC>:py run_cell()\<CR>\<ESC>i"
-inoremap <silent> <buffer> <C-CR> <ESC>:py run_cell(progress=True)<CR><ESC>i
-vnoremap <silent> <buffer> <S-CR> :py run_cell()<CR><ESC>gv
-vnoremap <silent> <buffer> <C-CR> :py run_cell(progress=True)<CR><ESC>gv
+nnoremap <expr> <buffer> <silent> <S-CR> pumvisible() ? "\<ESC>:py3 print_completions(invipy=False)\<CR>i" : "\<ESC>:py3 run_cell()\<CR>\<ESC>i"
+nnoremap <silent> <buffer> <C-CR> :py3 run_cell(progress=True)<CR><ESC>
+inoremap <expr> <silent> <buffer> <S-CR> pumvisible() ? "\<ESC>:py3 print_completions(invipy=False)\<CR>i" : "\<ESC>:py3 run_cell()\<CR>\<ESC>i"
+inoremap <silent> <buffer> <C-CR> <ESC>:py3 run_cell(progress=True)<CR><ESC>i
+vnoremap <silent> <buffer> <S-CR> :py3 run_cell()<CR><ESC>gv
+vnoremap <silent> <buffer> <C-CR> :py3 run_cell(progress=True)<CR><ESC>gv
 
 " AUTO COMPLETE
 fun! CompleteIPython(findstart, base)
@@ -25,12 +25,12 @@ fun! CompleteIPython(findstart, base)
         " locate the start of the word
         let line = getline('.')
         let start = col('.') - 1
-        python complete_type = 'normal'
+        python3 complete_type = 'normal'
         while start > 0
-            "python vib.append('cc: %s' % vim.eval('line[start-1]'))
+            "python3 vib.append('cc: %s' % vim.eval('line[start-1]'))
             if line[start-1] !~ '\w\|\.\|\/'
                 if line[start-1] == '('
-                    python complete_type = 'argument'
+                    python3 complete_type = 'argument'
                 endif
                 break
             endif
@@ -40,7 +40,7 @@ fun! CompleteIPython(findstart, base)
     else
         let res = []
 
-        python << endpython
+        python3 << endpython3
 current_line = vim.current.line
 base = vim.eval('a:base')
 completions = ['']
@@ -85,7 +85,7 @@ elif complete_type == 'argument':
 
 for c in completions:
     vim.command('call add(res,"' + c + '")')
-endpython
+endpython3
 
         return res
     endif
