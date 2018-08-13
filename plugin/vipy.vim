@@ -19,5 +19,6 @@ endfunction
 
 " Define startup commands (the main portion of the code is sourced separately
 " for startup speed
-noremap <silent> <C-F12> :call SourceMain()<CR>:py3 vipy_startup()<CR>
-inoremap <silent> <C-F12> <ESC>:call SourceMain()<CR>:py3 vipy_startup()<CR>
+noremap <silent> <Leader>p :call SourceMain()<CR>:py3 vipy_startup()<CR>
+inoremap <silent> <Leader>p :call SourceMain()<CR>:py3 vipy_startup()<CR>
+vnoremap <silent> <Leader>p :call SourceMain()<CR>:py3 vipy_startup()<CR>
