@@ -56,6 +56,13 @@ def vib_setup():
   # handle syntax coloring a little better
   vim.command('call VipySyntax()') # avoid problems with \v being escaped in the regexps
 
+def get_bufname():
+  return vim.eval("bufname('%')")
+
+def return_to_window(bufname):
+  win_nr = vim.eval(f'bufwinnr("{bufname}")')
+  result = vim.command(f"{win_nr} wincmd w")
+
 def open_console():
   # Open buffer in new split
   vim.command(f"split vipy.py")
@@ -85,6 +92,8 @@ def hide_vib():
       # Jump to open window and quit
       vim.command(f"drop {buffer.name}")
       vim.command("quit")
+      # Return to last active window
+      vim.command("wincmd p")
 
 def toggle_vib():
   if is_vim_ipython_open():

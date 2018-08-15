@@ -103,10 +103,14 @@ def vipy_startup():
 
     vib = get_vim_ipython_buffer()
     if not vib:
+      bufname = get_bufname()
       open_console()
+      # Return to last active window
+      #vim.command("wincmd p")
       vib_setup()
       vib = get_vim_ipython_buffer()
       new_prompt(append=False)
+      return_to_window(bufname)
     else:
       goto_vib()
 
