@@ -1,9 +1,12 @@
 
+n = 10
 
-import math
+threes = list(range(0, n, 3))
+fives = list(range(0, n, 5))
 
-a = 1
+result = set(threes + fives)
+print(result)
 
-b = 2
+for i in range(5):
+  print(i)
 
-print(a + b)

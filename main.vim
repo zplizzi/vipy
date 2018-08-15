@@ -29,6 +29,8 @@ noremap <silent> <Leader>q :py3 vipy_shutdown()<CR><ESC>
 inoremap <silent> <Leader>q :py3 vipy_shutdown()<CR><ESC>
 vnoremap <silent> <Leader>q :py3 vipy_shutdown()<CR><ESC>
 
+noremap  <silent> <leader>v :py3 toggle_vib()<CR>
+
 python3 << EOF
 import subprocess, sys, re, os
 from os import path, kill
@@ -63,10 +65,6 @@ try:
 except:
   vib = False
 try:
-  vihb
-except:
-  vihb = False
-try:
   km
 except NameError:
   km = None
@@ -78,7 +76,7 @@ vim_encoding = vim.eval('&encoding') or 'utf-8'
 ## STARTUP and SHUTDOWN
 ipython_process = None
 def vipy_startup():
-  global km, fullpath, profile_dir, client
+  global km, fullpath, profile_dir, client, vib
   if not km:
     vim.command("augroup vimipython")
     vim.command("au CursorHold * :python3 update_subchannel_msgs()")
@@ -105,7 +103,10 @@ def vipy_startup():
 
     vib = get_vim_ipython_buffer()
     if not vib:
-      setup_vib()
+      open_console()
+      vib_setup()
+      vib = get_vim_ipython_buffer()
+      new_prompt(append=False)
     else:
       goto_vib()
 
@@ -118,7 +119,7 @@ def vipy_startup():
     echo('Vipy has already been started!  Press SHIFT-F12 to close the current seeion.')
 
 def vipy_shutdown():
-  global km, vib, vihb
+  global km, vib
   
   status = 'idle'
   if km != None:
@@ -141,50 +142,10 @@ def vipy_shutdown():
   except:
     echo('The vipy buffer must have already been closed.')
   try:
-    if vihb:
-      if len(vim.windows) == 1:
-        vim.command('bprevious')
-      vim.command('bw ' + vihb.name)
-      vihb = None
-  except:
-    vihb = None
-  try:
     vim.command("au! vimipython")
   except:
     pass
 
-def setup_vib():
-  """ Setup vib (vipy buffer), that acts like a prompt. """
-  global vib
-  vipy_pos = vim.eval('g:vipy_position')
-  vim.command(vipy_pos + " new vipy.py")
-  vipy_height = str(vim.eval('g:vipy_height'))
-  vim.command("resize " + vipy_height)
-  # set the global variable for everyone to reference easily
-  vib = get_vim_ipython_buffer()
-  if not vib:
-    echo('It appears that your value for g:vipy_position is invalid!  See :help vipy')
-  new_prompt(append=False)
-
-  vim.command("setlocal nonumber")
-  vim.command("setlocal bufhidden=hide buftype=nofile ft=python noswf")
-  # turn of auto indent (there is some custom indenting that accounts
-  # for the prompt).  See vim-tip 330
-  vim.command("setl noai nocin nosi inde=") 
-  vim.command("syn match Normal /^>>>/")
-
-  # mappings to control sending stuff from vipy
-  vim.command('nnoremap <buffer> <silent> <cr> <ESC>:py3 enter_at_prompt()<CR>')
-  vim.command('inoremap <buffer> <silent> <cr> <ESC>:py3 enter_at_prompt()<CR>')
-
-  # add an auto command, so that the cursor always moves to the end
-  # upon entereing the vipy buffer
-  vim.command("au WinEnter <buffer> :python3 insert_at_new()")
-
-  vim.command("setlocal statusline=\ VIPY:\ %-{g:ipy_status}")
-  
-  # handle syntax coloring a little better
-  vim.command('call VipySyntax()') # avoid problems with \v being escaped in the regexps
 
 
 def if_vipy_started(func):
@@ -371,6 +332,7 @@ def with_subchannel(f, *args, **kwargs):
 @if_vipy_started
 @with_subchannel
 def run_this_file():
+  #vim.command("normal! ggVG")
   fname = repr(vim.current.buffer.name) # use repr to avoid escapes
   fname = fname.rstrip('ru') # remove r or u if it is raw or unicode
   fname = fname[1:-1] # remove the quotations
@@ -386,8 +348,9 @@ ws = re.compile(r'\s*')
 @if_vipy_started
 @with_subchannel
 def run_these_lines():
-  vim.command('normal y')
-  lines = vim.eval("getreg('0')").splitlines()
+  # Copy the last visual selection into the z register
+  vim.command('normal! gv"zy')
+  lines = vim.eval("getreg('z')").splitlines()
   ws_length = len(ws.match(lines[0]).group())
   lines = [line[ws_length:] for line in lines]
   msg_id = send("\n".join(lines))
@@ -434,11 +397,6 @@ def run_cell(progress=False):
       cell_end = nrows - 1
     vim.current.window.cursor = (cell_end + 1, 0)
 
-## HELP BUFFER
-try:
-  vihb
-except:
-  vihb = None
 
 
 EOF
