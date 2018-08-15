@@ -76,7 +76,7 @@ vim_encoding = vim.eval('&encoding') or 'utf-8'
 ## STARTUP and SHUTDOWN
 ipython_process = None
 def vipy_startup():
-  global km, fullpath, profile_dir, client, vib
+  global km, fullpath, profile_dir, client, vib, status
   if not km:
     vim.command("augroup vimipython")
     vim.command("au CursorHold * :python3 update_subchannel_msgs()")
@@ -96,10 +96,12 @@ def vipy_startup():
 
     fullpath = None
     ipy_args = []
+
     km = KernelManager()
-    km.kernel_name = "python3"
+    km.kernel_name = "pyenv"
     km.start_kernel()
     client = km.client()
+    status = "idle"
 
     vib = get_vim_ipython_buffer()
     if not vib:
@@ -229,7 +231,9 @@ def send(cmds, *args, **kargs):
   if status == 'busy':
     echo('Can not send commands while the python kernel is busy.')
     return
+    """
   if not in_vipy():
+    # Display executed code in the console window
     formatted = format_for_prompt(cmds, limit=True)
 
     # remove any prompts or blank lines
@@ -242,6 +246,7 @@ def send(cmds, *args, **kargs):
         vib.append(formatted[1:])
     else:
       vib.append(formatted) 
+      """
   val = client.execute(cmds, *args, **kargs)
   return val
 
@@ -277,6 +282,8 @@ def update_subchannel_msgs(debug=False):
       vim.command('let g:ipy_status="' + status + '"')
     elif msg_type == 'stream':
       s = strip_color_escapes(m['content']['text'])
+    elif msg_type == "execute_result":
+      s = strip_color_escapes(m['content']['data']['text/plain'])
     elif msg_type == 'error':
       c = m['content']
       s = "\n".join(map(strip_color_escapes, c['traceback']))
@@ -288,18 +295,7 @@ def update_subchannel_msgs(debug=False):
       s += "Type CTRL-F12 to restart the Kernel"
     
     if s: # then update the vipy buffer with the formatted text
-      if s.find('\n') == -1: # then use ugly unicode workaround from 
-        # http://vim.1045645.n5.nabble.com/Limitations-of-vim-python-interface-with-respect-to-character-encodings-td1223881.html
-        if isinstance(s,unicode):
-          s = s.encode(vim_encoding)
-        vib.append(s)
-        if debugging:
-          vib.append('using unicode workaround')
-      else:
-        try:
-          vib.append(s.splitlines())
-        except:
-          vib.append([l.encode(vim_encoding) for l in s.splitlines()])
+      vib.append(s.splitlines())
     
   # move to the vipy (so that the autocommand can scroll down)
   if in_vipy():
@@ -342,11 +338,14 @@ def run_this_file():
   fname = fname[1:-1] # remove the quotations
   fname = fname.replace('\\\\','\\')
   msg_id = send("run %s %s" % (run_flags, fname))
+  goto_vib()
+  
 
 @if_vipy_started
 @with_subchannel
 def run_this_line():
   msg_id = send(vim.current.line.strip())
+  goto_vib()
 
 ws = re.compile(r'\s*')
 @if_vipy_started
@@ -358,6 +357,7 @@ def run_these_lines():
   ws_length = len(ws.match(lines[0]).group())
   lines = [line[ws_length:] for line in lines]
   msg_id = send("\n".join(lines))
+  goto_vib()
 
 # TODO: add support for nested cells
 # TODO: fix glitch where the cursor moves incorrectly as a result of cell mode

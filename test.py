@@ -1,10 +1,17 @@
+import math
+import numpy as np
 
-n = 10
+def is_palindrome(i):
+  s = str(i)
+  for i in range(len(s) // 2):
+    if s[i] != s[-(i+1)]:
+      return False
+  return True
 
-threes = list(range(0, n, 3))
-fives = list(range(0, n, 5))
+res = []
+for i in range(1000):
+  for j in range(1000):
+    if is_palindrome(i*j):
+      res.append(i * j)
 
-result = set(threes + fives)
-
-print(sum(result))
-
+print(max(res))
