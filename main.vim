@@ -2,7 +2,6 @@
 " defined in plugin/vipy.vim; the files are split like this to reduce startup
 " time for sessions where vipy isn't used.
 
-execute "source utils.vim"
 
 let g:ipy_status="idle"
 
@@ -339,7 +338,7 @@ def run_this_file():
   fname = fname.rstrip('ru') # remove r or u if it is raw or unicode
   fname = fname[1:-1] # remove the quotations
   fname = fname.replace('\\\\','\\')
-  msg_id = send("run %s %s" % (run_flags, fname))
+  msg_id = send("%run {} {}".format(run_flags, fname))
   goto_vib()
   
 

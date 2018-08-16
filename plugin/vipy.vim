@@ -15,6 +15,7 @@ let s:vipy_location=expand("<sfile>:h:p")
 function! SourceMain()
     echom "Starting VIPY! This may take a few seconds..."
     execute "source " . s:vipy_location . "/../main.vim"
+    execute "source " . s:vipy_location . "/../utils.vim"
 endfunction
 
 " Define startup commands (the main portion of the code is sourced separately

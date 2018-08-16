@@ -60,12 +60,12 @@ def get_bufname():
   return vim.eval("bufname('%')")
 
 def return_to_window(bufname):
-  win_nr = vim.eval(f'bufwinnr("{bufname}")')
-  result = vim.command(f"{win_nr} wincmd w")
+  win_nr = vim.eval('bufwinnr("{}")'.format(bufname))
+  result = vim.command("{} wincmd w".format(win_nr))
 
 def open_console():
   # Open buffer in new split
-  vim.command(f"split vipy.py")
+  vim.command("split vipy.py")
   # Go to bottom
   vim.command('execute "normal! \<c-w>J"')
   # Set height
@@ -77,7 +77,7 @@ def goto_vib(insert_at_end = False):
   if buffer:
     if is_vim_ipython_open():
       # Use drop to jump to open window
-      vim.command(f"drop {buffer.name}")
+      vim.command("drop {}".format(buffer.name))
     else:
       open_console()
   else:
@@ -90,7 +90,7 @@ def hide_vib():
   if buffer:
     if is_vim_ipython_open():
       # Jump to open window and quit
-      vim.command(f"drop {buffer.name}")
+      vim.command("drop {}".format(buffer.name))
       vim.command("quit")
       # Return to last active window
       vim.command("wincmd p")
