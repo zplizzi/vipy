@@ -25,6 +25,8 @@ function! VipySyntax()
   hi link VipyOut Normal
 endfunction
 
+noremap <silent> <Leader>i :py3 interrupt_kernel()<CR><ESC>
+
 noremap <silent> <Leader>q :py3 vipy_shutdown()<CR><ESC>
 inoremap <silent> <Leader>q :py3 vipy_shutdown()<CR><ESC>
 vnoremap <silent> <Leader>q :py3 vipy_shutdown()<CR><ESC>

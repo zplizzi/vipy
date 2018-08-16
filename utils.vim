@@ -133,4 +133,9 @@ def get_vim_ipython_buffer():
       continue
   return None
 
+def interrupt_kernel():
+  km.interrupt_kernel()
+
+
+
 EOF
