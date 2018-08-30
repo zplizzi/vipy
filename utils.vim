@@ -63,7 +63,8 @@ def return_to_window(bufname):
   win_nr = vim.eval('bufwinnr("{}")'.format(bufname))
   result = vim.command("{} wincmd w".format(win_nr))
 
-def open_console():
+def open_console(focus = True):
+  bufname = get_bufname()
   # Open buffer in new split
   vim.command("split vipy.py")
   # Go to bottom
@@ -71,15 +72,19 @@ def open_console():
   # Set height
   vim.command('execute "normal! z10\<cr>"')
 
-def goto_vib(insert_at_end = False):
+  if not focus:
+    return_to_window(bufname)
+
+def goto_vib(insert_at_end = False, focus = True):
   """Show the vib buffer."""
   buffer = get_vim_ipython_buffer()
   if buffer:
     if is_vim_ipython_open():
-      # Use drop to jump to open window
-      vim.command("drop {}".format(buffer.name))
+      if focus:
+        # Use drop to jump to open window
+        vim.command("drop {}".format(buffer.name))
     else:
-      open_console()
+      open_console(focus)
   else:
     echo("Vipy not started. Maybe start it here?")
 

@@ -339,14 +339,14 @@ def run_this_file():
   fname = fname[1:-1] # remove the quotations
   fname = fname.replace('\\\\','\\')
   msg_id = send("%run {} {}".format(run_flags, fname))
-  goto_vib()
+  goto_vib(focus = False)
   
 
 @if_vipy_started
 @with_subchannel
 def run_this_line():
   msg_id = send(vim.current.line.strip())
-  goto_vib()
+  goto_vib(focus = False)
 
 ws = re.compile(r'\s*')
 @if_vipy_started
@@ -358,7 +358,7 @@ def run_these_lines():
   ws_length = len(ws.match(lines[0]).group())
   lines = [line[ws_length:] for line in lines]
   msg_id = send("\n".join(lines))
-  goto_vib()
+  goto_vib(focus = False)
 
 # TODO: add support for nested cells
 # TODO: fix glitch where the cursor moves incorrectly as a result of cell mode
