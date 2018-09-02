@@ -82,7 +82,8 @@ def goto_vib(insert_at_end = False, focus = True):
     if is_vim_ipython_open():
       if focus:
         # Use drop to jump to open window
-        vim.command("drop {}".format(buffer.name))
+        #vim.command("drop {}".format(buffer.name))
+        return_to_window("vipy.py")
     else:
       open_console(focus)
   else:
@@ -95,7 +96,8 @@ def hide_vib():
   if buffer:
     if is_vim_ipython_open():
       # Jump to open window and quit
-      vim.command("drop {}".format(buffer.name))
+      #vim.command("drop {}".format(buffer.name))
+      return_to_window("vipy.py")
       vim.command("quit")
       # Return to last active window
       vim.command("wincmd p")
