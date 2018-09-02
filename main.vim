@@ -32,6 +32,9 @@ vnoremap <silent> <Leader>q :py3 vipy_shutdown()<CR><ESC>
 
 noremap  <silent> <leader>v :py3 toggle_vib()<CR>
 
+" Close VIB before opening NerdTree, or splits open weirdly
+nnoremap <silent> <leader>f :py3 hide_vib()<CR><ESC>:NERDTreeToggle<CR>
+
 python3 << EOF
 import subprocess, sys, re, os
 from os import path, kill
