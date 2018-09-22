@@ -56,6 +56,10 @@ def vib_setup():
   # handle syntax coloring a little better
   vim.command('call VipySyntax()') # avoid problems with \v being escaped in the regexps
 
+  # Disable ALE in vipy
+  vim.command('let b:ale_enabled = 0')
+
+
 def get_bufname():
   return vim.eval("bufname('%')")
 
