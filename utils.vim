@@ -74,7 +74,7 @@ def open_console(focus = True):
   # Go to bottom
   vim.command('execute "normal! \<c-w>J"')
   # Set height
-  vim.command('execute "normal! z10\<cr>"')
+  vim.command('execute "normal! z8\<cr>"')
 
   if not focus:
     return_to_window(bufname)
