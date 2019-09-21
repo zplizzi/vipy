@@ -56,6 +56,10 @@ def vib_setup():
   # handle syntax coloring a little better
   vim.command('call VipySyntax()') # avoid problems with \v being escaped in the regexps
 
+  # Disable ALE in vipy
+  vim.command('let b:ale_enabled = 0')
+
+
 def get_bufname():
   return vim.eval("bufname('%')")
 
@@ -70,7 +74,7 @@ def open_console(focus = True):
   # Go to bottom
   vim.command('execute "normal! \<c-w>J"')
   # Set height
-  vim.command('execute "normal! z10\<cr>"')
+  vim.command('execute "normal! z8\<cr>"')
 
   if not focus:
     return_to_window(bufname)
