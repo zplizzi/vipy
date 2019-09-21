@@ -59,6 +59,9 @@ def vib_setup():
   # Disable ALE in vipy
   vim.command('let b:ale_enabled = 0')
 
+  # Disable  ALE better, previous didn't seem to be working
+  vim.command('ALEDisableBuffer')
+
 
 def get_bufname():
   return vim.eval("bufname('%')")
